@@ -1,0 +1,34 @@
+title New Note Submission (SPA)
+
+note over Browser:
+User submits form with new note data
+JS intercepts default browser form submission event
+creates new node object and pushes it to its (client-side) list of nodes
+resets form input field to empty
+rerenders list of notes
+sends new note data to server
+end note
+
+Browser->Server: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note_spa
+
+note over Server:
+JSON-Data 
+    {
+        "content": "<note content>", 
+        "date": "<note timestamp>"
+    }
+end note
+
+Server->Browser: STATUS 201 CREATED
+
+note over Browser:
+JSON-Data 
+    {
+        "message": "note created"
+    }
+end note
+
+note over Browser:
+JS executes event handler for successful response
+logs success message to console
+end note
