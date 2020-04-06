@@ -1,0 +1,23 @@
+title New Note Submission
+
+Browser->Server: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note
+Server->Browser: STATUS 302 FOUND Location: /notes
+Browser->Server: HTTP GET https://fullstack-exampleapp.herokuapp.com/notes
+Server->Browser: STATUS 200 OK HTML-Code
+Browser->Server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.css
+Server->Browser: STATUS 200 OK main.css
+Browser->Server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.js
+Server->Browser: STATUS 200 OK main.js
+
+note over Browser:
+Browser starts executing JS
+Requests notes as JSON-Data
+end note
+
+Browser->Server: HTTP GET https://fullstack-exampleapp.herokuapp.com/data.json
+Server->Browser: STATUS 200 OK data.json
+
+note over Browser:
+JS executes event handler for successful response
+rendering notes received in JSON data in UL node
+end note
