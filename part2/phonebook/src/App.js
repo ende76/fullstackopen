@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Filter from './components/Filter';
 import NewEntryForm from './components/NewEntryForm';
 import PersonList from './components/PersonList';
 
 const App = () => {
-  const [ persons, setPersons] = useState([
-    {name: 'abc def', number: '012345'}, 
-    {name: 'ghi jek', number: '098765'},
-    {name: 'GHi dEF', number: '0xdeadcode'},
-  ]); 
+  const [ persons, setPersons] = useState([]); 
   const [ newName, setNewName ] = useState('');
   const [ newNumber, setNewNumber ] = useState('');
   const [ nameLookup, setNameLookup ] = useState({});
   const [ filterPattern, setFilterPattern] = useState('');
 
+  useEffect(() => {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(({data}) => {
+        setPersons(data);
+      });
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
