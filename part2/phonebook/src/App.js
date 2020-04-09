@@ -3,6 +3,7 @@ import entryService from './services/entry';
 import Filter from './components/Filter';
 import NewEntryForm from './components/NewEntryForm';
 import PersonList from './components/PersonList';
+import Message from './components/Message';
 
 const App = () => {
   const [ persons, setPersons] = useState([]); 
@@ -10,19 +11,40 @@ const App = () => {
   const [ newNumber, setNewNumber ] = useState('');
   const [ nameLookup, setNameLookup ] = useState({});
   const [ filterPattern, setFilterPattern] = useState('');
+  const [ message, setMessage ] = useState();
 
-  useEffect(() => {
+  const syncWithServer = () => {
     entryService
-      .getAll()
-      .then(data => {
-        setPersons(data);
-        const lookup = {};
-        data.forEach(entry => {
-          lookup[entry.name] = entry.id;
-        });
-        setNameLookup(lookup);
+    .getAll()
+    .then(data => {
+      setPersons(data);
+      const lookup = {};
+      data.forEach(entry => {
+        lookup[entry.name] = entry.id;
       });
-  }, []);
+      setNameLookup(lookup);
+    });
+  };
+
+  useEffect(syncWithServer, []);
+
+  const clearMessage = (myMessage) => {
+    if (!myMessage) return;
+
+    clearTimeout(myMessage.timeout);
+    setMessage(null);
+  };
+
+  const showMessage = (msg, type) => {
+    const myMessage = {
+      text: msg,
+      timeout: setTimeout(() => clearMessage(myMessage), 5000),
+      type
+    };
+
+    clearMessage(message);
+    setMessage(myMessage);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,13 +61,23 @@ const App = () => {
 
       entryService
         .update({id: nameLookup[newName], name: newName, number: newNumber})
-        .then(data => setPersons(persons.map(entry => entry.id === nameLookup[newName] ? {...entry, number: newNumber} : entry)));
+        .then(data => {
+          setPersons(persons.map(entry => entry.id === nameLookup[newName] ? {...entry, number: newNumber} : entry))
+          showMessage(`Entry ${newName} has been updated.`, 1 /* success */);
+        })
+        .catch(error => {
+          showMessage(`Entry ${newName} could not be updated.`, 2 /* error */);
+          syncWithServer();
+        });
+      
+      
     } else {
       entryService
       .create({name: newName, number: newNumber})
       .then(data => {
         setPersons(persons.concat(data));
         setNameLookup({...nameLookup, [data.name]: data.id});
+        showMessage(`Entry ${newName} has been created.`, 1 /* success */);
       });
     }
 
@@ -61,12 +93,18 @@ const App = () => {
       .then(() => {
         setPersons(persons.filter(person => person.id !== id));
         setNameLookup({...nameLookup, [name]: false});
+        showMessage(`Entry ${name} has been removed.`, 1 /* success */);
+      })
+      .catch(error => {
+        showMessage(`Entry ${name} could not be removed.`, 2 /* error */);
+        syncWithServer();
       });
   };
 
   return (
     <div>
       <h1>Phonebook</h1>
+      {!!message ? <Message message={message} /> : null}
       <Filter 
         filterPattern={filterPattern}
         setFilterPattern={setFilterPattern}
@@ -85,4 +123,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;
