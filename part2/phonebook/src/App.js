@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import entryService from './services/entry';
 import Filter from './components/Filter';
 import NewEntryForm from './components/NewEntryForm';
 import PersonList from './components/PersonList';
@@ -12,10 +12,15 @@ const App = () => {
   const [ filterPattern, setFilterPattern] = useState('');
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(({data}) => {
+    entryService
+      .getAll()
+      .then(data => {
         setPersons(data);
+        const lookup = {};
+        data.forEach(entry => {
+          lookup[entry.name] = entry.id;
+        });
+        setNameLookup(lookup);
       });
   }, []);
 
@@ -28,15 +33,35 @@ const App = () => {
     }
 
     if (!!nameLookup[newName]) {
-      alert(`${newName} is already added to phonebook`);
-      return;
+      if (!window.confirm(`${newName} is already added to phonebook. Would you like to update the existing number?`)) {
+        return;
+      }
+
+      entryService
+        .update({id: nameLookup[newName], name: newName, number: newNumber})
+        .then(data => setPersons(persons.map(entry => entry.id === nameLookup[newName] ? {...entry, number: newNumber} : entry)));
+    } else {
+      entryService
+      .create({name: newName, number: newNumber})
+      .then(data => {
+        setPersons(persons.concat(data));
+        setNameLookup({...nameLookup, [data.name]: data.id});
+      });
     }
 
-    setPersons(persons.concat({ name: newName, number: newNumber }));
     setNewName('');
-    setNewNumber('');
+    setNewNumber('');  
+  };
 
-    setNameLookup({...nameLookup, [newName]: true});
+  const makeClickHandler = ({ id, name }) => (e) => {
+    if (!window.confirm(`delete ${name}?`)) return;
+
+    entryService
+      .remove(id)
+      .then(() => {
+        setPersons(persons.filter(person => person.id !== id));
+        setNameLookup({...nameLookup, [name]: false});
+      });
   };
 
   return (
@@ -55,7 +80,7 @@ const App = () => {
         handleSubmit={handleSubmit}
       />
       <h2>Numbers</h2>
-      <PersonList persons={persons} filterPattern={filterPattern} />
+      <PersonList persons={persons} filterPattern={filterPattern} makeClickHandler={makeClickHandler} />
     </div>
   )
 }

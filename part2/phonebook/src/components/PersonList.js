@@ -1,11 +1,11 @@
 import React from 'react';
 import Person from './Person';
 
-function PersonList({persons, filterPattern}) {
+function PersonList({persons, filterPattern, makeClickHandler}) {
     const personComponents = 
         persons
             .filter(({name}) => name.toLowerCase().indexOf(filterPattern.toLowerCase()) >= 0)
-            .map((data) => <Person key={data.name} data={data} />);
+            .map((data) => <Person key={data.id} data={data} makeClickHandler={makeClickHandler} />);
 
     return <table>
         <tbody>
