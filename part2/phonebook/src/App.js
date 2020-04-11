@@ -65,20 +65,21 @@ const App = () => {
           setPersons(persons.map(entry => entry.id === nameLookup[newName] ? {...entry, number: newNumber} : entry))
           showMessage(`Entry ${newName} has been updated.`, 1 /* success */);
         })
-        .catch(error => {
-          showMessage(`Entry ${newName} could not be updated.`, 2 /* error */);
+        .catch(({response: {data: { message }}}) => {
+          showMessage(message, 2);
           syncWithServer();
         });
       
       
     } else {
       entryService
-      .create({name: newName, number: newNumber})
-      .then(data => {
-        setPersons(persons.concat(data));
-        setNameLookup({...nameLookup, [data.name]: data.id});
-        showMessage(`Entry ${newName} has been created.`, 1 /* success */);
-      });
+        .create({name: newName, number: newNumber})
+        .then(data => {
+          setPersons(persons.concat(data));
+          setNameLookup({...nameLookup, [data.name]: data.id});
+          showMessage(`Entry ${newName} has been created.`, 1 /* success */);
+        })
+        .catch(({response: {data: { message }}}) => showMessage(message, 2));
     }
 
     setNewName('');
@@ -95,8 +96,8 @@ const App = () => {
         setNameLookup({...nameLookup, [name]: false});
         showMessage(`Entry ${name} has been removed.`, 1 /* success */);
       })
-      .catch(error => {
-        showMessage(`Entry ${name} could not be removed.`, 2 /* error */);
+      .catch(({response: {data: { message }}}) => {
+        showMessage(message, 2);
         syncWithServer();
       });
   };
