@@ -64,6 +64,8 @@ const App = () => {
         .then(data => {
           setPersons(persons.map(entry => entry.id === nameLookup[newName] ? {...entry, number: newNumber} : entry))
           showMessage(`Entry ${newName} has been updated.`, 1 /* success */);
+          setNewName('');
+          setNewNumber('');  
         })
         .catch(({response: {data: { message }}}) => {
           showMessage(message, 2);
@@ -78,12 +80,11 @@ const App = () => {
           setPersons(persons.concat(data));
           setNameLookup({...nameLookup, [data.name]: data.id});
           showMessage(`Entry ${newName} has been created.`, 1 /* success */);
+          setNewName('');
+          setNewNumber('');  
         })
         .catch(({response: {data: { message }}}) => showMessage(message, 2));
     }
-
-    setNewName('');
-    setNewNumber('');  
   };
 
   const makeClickHandler = ({ id, name }) => (e) => {
